@@ -3,15 +3,17 @@ var wsUri = "wss://socketsbay.com/wss/v2/1/demo/";
 const setStylesOnElement = function(styles, element){
     Object.assign(element.style, styles);
 }
-let statusBar = document.createElement("div")
-let formBox = document.createElement('div');
-let cornerShape = document.createElement("div");
-let chatBox = document.createElement("div");
-let inputEl = document.createElement("input");
-// chatBox.style["-webkit-scrollbar"].display = "none";
+const statusBar = document.createElement("div")
+const formBox = document.createElement('div');
+const cornerShape = document.createElement("div");
+const chatBox = document.createElement("div");
+const inputEl = document.createElement("input");
+const coverScroll = document.createElement("div");
 
 
-let btnSwitch = document.createElement("button");
+
+
+const btnSwitch = document.createElement("button");
 btnSwitch.innerHTML = "Live Chat";
 btnSwitch.type = "text";
 btnSwitch.addEventListener('mouseenter', ()=> {
@@ -19,11 +21,14 @@ btnSwitch.addEventListener('mouseenter', ()=> {
 })
 
 
-let btnSend = document.createElement("button");
+const btnSend = document.createElement("button");
 btnSend.innerHTML = "Send";
 btnSend.type = "text";
-btnSend.addEventListener('click', sendMessage);
+btnSend.addEventListener('click', ()=>{
+    inputEl.value ? sendMessage() : '';
+});
 btnSend.addEventListener('mouseenter', ()=> btnSend.style.cursor = "pointer")
+
 
 const btnSwitchStyle = {
     width: "80px",
@@ -61,9 +66,8 @@ const chatBoxStyle = {
     padding: "5px 10px",
     marginTop: '50px',
     marginLeft: "10px",
-    
+    zIndex: 220
 }
-
 
 const statusBarStyle = {
     width: "280px",
@@ -111,6 +115,16 @@ const btnSendStyle = {
     fontFamily: "cursive"
 }
 
+const coverScrollStyle = {
+    width: "18px",
+    height: "310px",
+    background: "#ddd",
+    position: "absolute",
+    top: "60px",
+    right: "20px",
+    zIndex: 20
+}
+
 setStylesOnElement(btnSwitchStyle, btnSwitch);
 setStylesOnElement(cornerShapeStyle, cornerShape)
 setStylesOnElement(chatBoxStyle, chatBox)
@@ -118,6 +132,7 @@ setStylesOnElement(statusBarStyle, statusBar)
 setStylesOnElement(formBoxStyle, formBox)
 setStylesOnElement(inputElStyle, inputEl)
 setStylesOnElement(btnSendStyle, btnSend)
+setStylesOnElement(coverScrollStyle, coverScroll)
 
 function init() {
     testWebSocket();
@@ -154,7 +169,7 @@ function onClose(evt) {
 }
 
 function onMessage(evt) {
-    writeLog('<p style="color: #100bb8; background: #fff; border-radius: 4px; padding: 5px; margin-top: 4px; max-width: 180px; height: auto; overflow-wrap: break-word;"> John Doe: ' + evt.data + '</p>');
+    writeLog('<p style="color: #100bb8; background: #fff; border-radius: 4px; padding: 5px; margin-top: 4px; margin-left: 5px; max-width: 180px; height: auto; overflow-wrap: break-word;"> John Doe: ' + evt.data + '</p>');
     chatBox.scrollTop = chatBox.scrollHeight
     // websocket.close();
 }
@@ -170,7 +185,7 @@ function onError(evt) {
 
 function sendMessage() {
     websocket.send(inputEl.value);
-    writeLog('<div style="display: flex; justify-content: end; margin-top: 10px; margin-bottom: 10px;"><div style="color: #000; text-align: right; max-width: 180px;background: #fff; border-radius: 4px; padding: 5px; overflow-wrap: break-word;"> User: ' + inputEl.value + '</div></div>');
+    writeLog(`<div style="display: flex; justify-content: end; margin: 10px ${chatBox.scrollHeight > chatBox.clientHeight ? "-10px" : "5px"} 10px 0px;"><div style="color: #000; text-align: right; z-index: 30; max-width: 180px; background: #fff; border-radius: 4px; padding: 5px; overflow-wrap: break-word;"> User: ` + inputEl.value + '</div></div>')
     inputEl.value ='';
     chatBox.scrollTop = chatBox.scrollHeight
 }
@@ -194,13 +209,14 @@ window.addEventListener("load", () => {
         zIndex: 300000,
     }
 
-    setStylesOnElement(logStyle, log)
+    setStylesOnElement(logStyle, log);
     
     btnSwitch.addEventListener('click', () => {
         formBox.appendChild(inputEl)
         formBox.appendChild(btnSend)
         chatBox.appendChild(formBox)
         chatBox.appendChild(statusBar)
+        chatBox.appendChild(coverScroll)
 
         if(log.contains(chatBox)) {
             log.removeChild(chatBox);
@@ -211,8 +227,16 @@ window.addEventListener("load", () => {
             btnSwitch.innerHTML = "Close"
             init()
         }
-  
     })
+
+    document.addEventListener('keyup', (evt) => {
+        evt.preventDefault()
+        if(evt.key === "Enter" && inputEl.value) {
+            sendMessage()
+        }
+    })
+
+
     log.appendChild(btnSwitch);
     log.appendChild(cornerShape);
     
